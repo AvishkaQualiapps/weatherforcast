@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class WhetherController extends Controller
 {
@@ -53,7 +54,7 @@ class WhetherController extends Controller
             ], 500);
         }
     }
-    public function getWeatherForecast($city)
+    public function getWeatherForecast(Request $request, $city)
     {
         try {
             $apiKey = env('WEATHER_API_KEY');
@@ -63,8 +64,51 @@ class WhetherController extends Controller
 
             if ($response->successful()) {
                 $forecastData = $response->json();
+                $forecasts = $forecastData['list'];
 
-                return response()->json($forecastData);
+                foreach ($forecasts as $forecast) {
+                    $humidity = $forecast['main']['humidity'];
+                    if ($humidity > 70) {
+                        $forecast['main']['humidity'] = 'High';
+                    } elseif ($humidity > 40) {
+                        $forecast['main']['humidity'] = 'Medium';
+                    } else {
+                        $forecast['main']['humidity'] = 'Low';
+                    }
+
+                    $humiditylist[] = $forecast['main']['humidity'];
+                    print_r($humiditylist);
+                }
+
+
+                $startDate = Carbon::parse($request->query('start_date'));
+                $endDate = Carbon::parse($request->query('end_date'));
+
+
+                $filteredForecasts = collect($forecasts)->filter(function ($forecast) use ($startDate, $endDate) {
+                    $forecastDate = Carbon::parse($forecast['dt_txt']);
+
+
+                    return $forecastDate->between($startDate, $endDate);
+                });
+
+
+                $formattedForecasts = $filteredForecasts->map(function ($forecast) {
+                    return [
+                        'datetime' => Carbon::parse($forecast['dt_txt'])->toDateTimeString(),
+                        'temperature' => $forecast['main']['temp'],
+                        'description' => $forecast['weather'][0]['description'],
+                        'humidity' => $forecast['main']['humidity'],
+                        'wind_speed' => $forecast['wind']['speed']
+                    ];
+                });
+
+                return response()->json([
+                    'city' => $city,
+                    'start_date' => $startDate->toDateString(),
+                    'end_date' => $endDate->toDateString(),
+                    'forecast' => $formattedForecasts
+                ]);
             } else {
                 Log::error('Weather API Error', [
                     'status' => $response->status(),
@@ -88,5 +132,4 @@ class WhetherController extends Controller
             ], 500);
         }
     }
-
 }

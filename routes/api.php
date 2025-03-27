@@ -5,14 +5,18 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WhetherController;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
 
 
-Route::middleware('auth:sanctum')->get('/weather/{city}', [WhetherController::class, 'getWeather']);
 
-Route::middleware('auth:sanctum')->get('/weatherforcast/{city}', [WhetherController::class, 'getWeatherForecast']);
+
+Route::post('/register', [AuthController::class, 'register'])->name('user.register');
+Route::post('/login', [AuthController::class, 'login'])->name('user.login');
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('user.logout');
+
+
+Route::middleware('auth:sanctum')->get('/weather/{city}', [WhetherController::class, 'getWeather'])->name('getWeather');
+
+Route::middleware('auth:sanctum')->get('/weatherforcast/{city}', [WhetherController::class, 'getWeatherForecast'])->name('getWeatherforecast');
 
 Route::get('/test', function() {
     return response()->json(['message' => 'API is working']);
