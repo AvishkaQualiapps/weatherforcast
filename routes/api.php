@@ -10,13 +10,13 @@ use App\Http\Controllers\WhetherController;
 
 
 Route::post('/register', [AuthController::class, 'register'])->name('user.register');
-Route::post('/login', [AuthController::class, 'login'])->name('user.login');
+Route::post('/login', [AuthController::class, 'login'])->name('login')->name('user.login');
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('user.logout');
 
 
-Route::middleware('auth:sanctum')->get('/weather/{city}', [WhetherController::class, 'getWeather'])->name('getWeather');
+Route::middleware('auth:sanctum')->get('/weather/{city}', [WhetherController::class, 'getWeather'])->name('city.weather');
 
-Route::middleware('auth:sanctum')->get('/weatherforcast/{city}', [WhetherController::class, 'getWeatherForecast'])->name('getWeatherforecast');
+Route::middleware('auth:sanctum')->get('/weatherforcast/{city}', [WhetherController::class, 'getWeatherForecast'])->name('city.weather.forecast');
 
 Route::get('/test', function() {
     return response()->json(['message' => 'API is working']);
